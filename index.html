@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="scroll-smooth select-none">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mr. Nasser | منصة التميز في اللغة الإنجليزية</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Cairo & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            500: '#0284c7',
+                            dark: '#0f172a',
+                            accent: '#f59e0b',
+                            gold: '#fbbf24'
+                        }
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            overflow-x: hidden;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .blue-gradient {
+            background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+        }
+        .gold-gradient {
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between antialiased selection:bg-none" 
+      oncontextmenu="return false;" 
+      oncopy="return false;" 
+      oncut="return false;" 
+      onpaste="return false;"
+      onselectstart="return false;"
+      ondragstart="return false;">
+
+    <!-- العلامة المائية السرية لحماية الأسئلة من التصوير الخارجي -->
+    <div id="watermarkLayer" class="fixed inset-0 pointer-events-none z-[9998] opacity-10 flex flex-wrap items-center justify-around overflow-hidden select-none hidden"></div>
+
+    <!-- تنبيه منع مغادرة أو تصوير الشاشة -->
+    <div id="cheatWarningOverlay" class="fixed inset-0 bg-red-950/95 backdrop-blur-xl z-[9999] hidden flex flex-col items-center justify-center p-6 text-center">
+        <div class="w-20 h-20 rounded-full bg-red-600/20 text-red-500 flex items-center justify-center text-4xl mb-4 border border-red-500/40 animate-pulse">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-black text-white mb-2">تنبيه أمني: ممنوع التصوير أو مغادرة الشاشة!</h1>
+        <p class="text-sm text-red-200 max-w-md leading-relaxed mb-4">
+            تم رصد محاولة خروج أو استخدام أدوات خارجية لتصوير/تسجيل الشاشة. يُمنع ذلك تماماً لضمان سرية الامتحان.
+        </p>
+        <div class="p-3 bg-red-900/60 rounded-xl border border-red-700/50 mb-6 text-xs text-red-100 font-bold">
+            متبقي لديك <span id="warningAttemptsLeft" class="text-amber-400 font-black text-sm">1</span> محاولة واحدة فقط قبل إلغاء الامتحان وتسليمه بنتيجة (0)!
+        </div>
+        <button onclick="dismissCheatWarning()" class="px-8 py-3.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-sm shadow-xl transition-all">
+            فهمت، العودة للامتحان فوراً
+        </button>
+    </div>
+
+    <!-- نافذة مراجعة امتحانات الطالب للمعلم -->
+    <div id="teacherExamReviewModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[999] hidden flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-700 p-6 space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div>
+                    <h3 id="reviewModalTitle" class="text-lg font-bold text-white">مراجعة امتحانات الطالب</h3>
+                    <p id="reviewModalSubtitle" class="text-xs text-sky-400 mt-0.5">اختر الامتحان لعرض تفاصيل الأسئلة وحلها</p>
+                </div>
+                <button onclick="closeTeacherReviewModal()" class="text-slate-400 hover:text-white text-lg p-2"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="teacherReviewModalBody" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <!-- ورقة تفاصيل امتحان الطالب -->
+    <div id="examFullPaperModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-[1000] hidden flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl border border-sky-500/40 p-6 space-y-6 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div>
+                    <h3 id="paperModalTitle" class="text-base sm:text-lg font-bold text-white">ورقة امتحان الطالب</h3>
+                    <p id="paperModalSub" class="text-xs text-sky-400 mt-0.5">مراجعة صحة أو خطأ كل سؤال</p>
+                </div>
+                <button onclick="closeFullPaperModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 rounded-xl">
+                    <i class="fa-solid fa-arrow-right ml-1"></i> العودة للقائمة
+                </button>
+            </div>
+            <div id="examFullPaperBody" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <!-- نافذة اختيار الامتحان لإعادة فتحه -->
+    <div id="teacherRetakeModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[1001] hidden flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-lg rounded-3xl border border-amber-500/40 p-6 space-y-5 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div>
+                    <h3 id="retakeModalTitle" class="text-base font-bold text-white">اختيار الامتحان لإعادة فتحه</h3>
+                    <p class="text-xs text-amber-400 mt-0.5">حدد الامتحان المطلوب السماح للطالب بإعادته فقط</p>
+                </div>
+                <button onclick="closeRetakeModal()" class="text-slate-400 hover:text-white text-lg p-1.5"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="teacherRetakeModalBody" class="space-y-3 max-h-[60vh] overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed top-20 left-4 right-4 sm:right-auto sm:left-5 z-50 flex flex-col gap-3 pointer-events-none max-w-md"></div>
+
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-40 w-full glass-card border-b border-slate-800/80 bg-slate-900/90 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('homeTab')">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl blue-gradient flex items-center justify-center text-white text-xl sm:text-2xl font-black shadow-lg shadow-sky-500/20 shrink-0">
+                        MN
+                    </div>
+                    <div>
+                        <h1 class="text-base sm:text-xl font-bold tracking-tight text-white flex items-center gap-1.5 sm:gap-2">
+                            Mr. Nasser <span class="text-[10px] sm:text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-semibold">Master English</span>
+                        </h1>
+                        <p class="text-[11px] sm:text-xs text-slate-400">منصة التفوق والاختبارات التفاعلية</p>
+                    </div>
+                </div>
+
+                <nav class="hidden lg:flex items-center gap-1 bg-slate-800/50 p-1.5 rounded-2xl border border-slate-700/50">
+                    <button onclick="switchTab('homeTab')" id="nav-homeTab" class="nav-btn active px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 text-sky-400 bg-slate-700/70">
+                        <i class="fa-solid fa-house ml-1.5"></i>الرئيسية
+                    </button>
+                    <button onclick="switchTab('studentTab')" id="nav-studentTab" class="nav-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-all duration-200">
+                        <i class="fa-solid fa-user-graduate ml-1.5"></i>بوابة الطالب
+                    </button>
+                    <button onclick="switchTab('parentTab')" id="nav-parentTab" class="nav-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-all duration-200">
+                        <i class="fa-solid fa-users-between-lines ml-1.5"></i>بوابة ولي الأمر
+                    </button>
+                    <button onclick="switchTab('examTab')" id="nav-examTab" class="nav-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-all duration-200">
+                        <i class="fa-solid fa-file-pen ml-1.5"></i>الامتحانات
+                    </button>
+                    <button onclick="switchTab('teacherTab')" id="nav-teacherTab" class="nav-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-all duration-200">
+                        <i class="fa-solid fa-lock ml-1.5 text-amber-400"></i>لوحة المعلم
+                    </button>
+                </nav>
+
+                <div class="hidden sm:flex items-center gap-3">
+                    <div id="loggedUserBadge" class="hidden items-center gap-2.5 bg-slate-800/90 border border-slate-700/80 rounded-xl px-3 py-1.5">
+                        <div class="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-xs">
+                            <i class="fa-solid fa-user-check"></i>
+                        </div>
+                        <div class="text-right">
+                            <p id="loggedUserName" class="text-xs font-bold text-white">-</p>
+                            <p id="loggedUserRole" class="text-[10px] text-sky-400">-</p>
+                        </div>
+                        <button onclick="logout()" class="text-slate-400 hover:text-red-400 text-xs p-1 mr-1" title="تسجيل الخروج">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex lg:hidden">
+                    <button onclick="toggleMobileMenu()" class="text-slate-300 p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 focus:outline-none">
+                        <i class="fa-solid fa-bars text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="mobileMenu" class="hidden lg:hidden bg-slate-900 border-b border-slate-800 px-4 pt-3 pb-5 space-y-2">
+            <button onclick="switchTab('homeTab'); toggleMobileMenu()" class="w-full text-right px-4 py-3 rounded-xl text-sm font-semibold text-slate-200 bg-slate-800/60 flex items-center gap-2">
+                <i class="fa-solid fa-house text-sky-400 w-5"></i>الرئيسية
+            </button>
+            <button onclick="switchTab('studentTab'); toggleMobileMenu()" class="w-full text-right px-4 py-3 rounded-xl text-sm font-semibold text-slate-200 hover:bg-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-user-graduate text-sky-400 w-5"></i>بوابة الطالب
+            </button>
+            <button onclick="switchTab('parentTab'); toggleMobileMenu()" class="w-full text-right px-4 py-3 rounded-xl text-sm font-semibold text-slate-200 hover:bg-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-users-between-lines text-sky-400 w-5"></i>بوابة ولي الأمر
+            </button>
+            <button onclick="switchTab('examTab'); toggleMobileMenu()" class="w-full text-right px-4 py-3 rounded-xl text-sm font-semibold text-slate-200 hover:bg-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-file-pen text-sky-400 w-5"></i>الامتحانات الأسبوعية
+            </button>
+            <button onclick="switchTab('teacherTab'); toggleMobileMenu()" class="w-full text-right px-4 py-3 rounded-xl text-sm font-semibold text-slate-200 hover:bg-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-lock text-amber-400 w-5"></i>لوحة المعلم
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-grow w-full">
+
+        <!-- ================= HOME TAB ================= -->
+        <section id="homeTab" class="tab-content space-y-8 sm:space-y-12">
+            <div class="relative overflow-hidden rounded-2xl sm:rounded-3xl glass-card p-6 sm:p-10 border border-slate-800">
+                <div class="relative z-10 grid lg:grid-cols-2 gap-8 items-center">
+                    <div class="space-y-4 sm:space-y-6 text-right">
+                        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700 text-sky-400 text-xs font-semibold">
+                            <i class="fa-solid fa-shield-halved text-amber-400"></i> نظام حماية صارم: منع التصوير ومراقبة الشاشة
+                        </div>
+                        <h1 class="text-2xl sm:text-4xl lg:text-5xl font-extrabold leading-snug sm:leading-tight text-white">
+                            منصة الاختبارات الحصرية لطلاب <span class="text-transparent bg-clip-text blue-gradient">Mr. Nasser</span>
+                        </h1>
+                        <p class="text-slate-300 text-xs sm:text-base leading-relaxed">
+                            امتحانات تفاعلية مؤمنة ضد مغادرة الشاشة، لقطات الشاشة (Screenshot)، ومحاولات التسجيل بالفيديو.
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                            <button onclick="switchTab('studentTab')" class="w-full sm:w-auto px-6 py-3 rounded-xl blue-gradient text-white font-bold text-sm shadow-lg shadow-sky-500/25 hover:opacity-95 transition-all flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-right-to-bracket"></i> دخول بوابة الطالب
+                            </button>
+                            <button onclick="switchTab('parentTab')" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 font-bold text-sm transition-all flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-chart-line text-amber-400"></i> دخول ولي الأمر
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= STUDENT PORTAL TAB ================= -->
+        <section id="studentTab" class="tab-content hidden space-y-6 sm:space-y-8">
+            <div class="border-b border-slate-800 pb-4 sm:pb-6">
+                <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-user-graduate text-sky-400"></i> بوابة الطلاب - تسجيل الدخول
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-400 mt-1">أدخل كود/IP الطالب وكلمة السر</p>
+            </div>
+
+            <div id="studentLoginContainer" class="max-w-md mx-auto glass-card p-6 sm:p-8 rounded-2xl border border-slate-800 space-y-5">
+                <form onsubmit="handleStudentLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-2">كود / IP الطالب المخصص</label>
+                        <input type="text" id="studentLoginCode" placeholder="أدخل كود الطالب" required class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-sky-500 font-mono dir-ltr">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-2">كلمة السر</label>
+                        <input type="password" id="studentLoginPass" placeholder="••••••" required class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-sky-500 font-mono dir-ltr">
+                    </div>
+                    <button type="submit" class="w-full py-3.5 rounded-xl blue-gradient text-white font-bold text-sm shadow-lg shadow-sky-500/20 hover:opacity-95 transition-all">
+                        دخول البوابة وتأكيد الجهاز
+                    </button>
+                </form>
+            </div>
+
+            <div id="studentDashboard" class="hidden space-y-6 sm:space-y-8">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div class="glass-card p-4 rounded-xl border border-slate-800 text-right">
+                        <p class="text-[11px] sm:text-xs text-slate-400">اسم الطالب</p>
+                        <p id="dashStudentName" class="text-sm sm:text-base font-bold text-white mt-1 truncate">-</p>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl border border-slate-800 text-right">
+                        <p class="text-[11px] sm:text-xs text-slate-400">الصف الدراسي</p>
+                        <p id="dashStudentGrade" class="text-sm sm:text-base font-bold text-sky-400 mt-1 truncate">-</p>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl border border-slate-800 text-right">
+                        <p class="text-[11px] sm:text-xs text-slate-400">حالة الجهاز الحالي</p>
+                        <p class="text-xs sm:text-sm font-bold text-emerald-400 mt-1 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-check"></i> موثق ومعتمد
+                        </p>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl border border-slate-800 text-right">
+                        <p class="text-[11px] sm:text-xs text-slate-400">متوسط الدرجات</p>
+                        <p id="dashStudentAvg" class="text-base sm:text-xl font-black text-amber-400 mt-1">0%</p>
+                    </div>
+                </div>
+
+                <div class="glass-card p-5 sm:p-6 rounded-2xl border border-slate-800 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-sky-400"></i> الامتحانات المتاحة لصفك الدراسي
+                        </h3>
+                        <button onclick="switchTab('examTab')" class="text-xs text-sky-400 hover:underline font-bold">عرض صفحة الامتحانات <i class="fa-solid fa-arrow-left mr-1"></i></button>
+                    </div>
+                    <div id="availableExamsList" class="grid md:grid-cols-2 gap-4"></div>
+                </div>
+
+                <div class="glass-card p-5 sm:p-6 rounded-2xl border border-slate-800 space-y-4">
+                    <h3 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-trophy text-emerald-400"></i> أرشيف امتحاناتك المؤداة
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right text-xs sm:text-sm min-w-[500px]">
+                            <thead class="text-[11px] text-slate-400 bg-slate-800/80 border-b border-slate-700">
+                                <tr>
+                                    <th class="p-3">اسم الامتحان</th>
+                                    <th class="p-3">التاريخ</th>
+                                    <th class="p-3">الدرجة</th>
+                                    <th class="p-3">النسبة</th>
+                                    <th class="p-3">وقت الحل المستغرق</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentHistoryTableBody" class="divide-y divide-slate-800"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PARENT PORTAL TAB ================= -->
+        <section id="parentTab" class="tab-content hidden space-y-6 sm:space-y-8">
+            <div class="border-b border-slate-800 pb-4 sm:pb-6">
+                <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-users-between-lines text-amber-400"></i> بوابة ولي الأمر - متابعة الطالب
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-400 mt-1">أدخل كود/IP الطالب وكلمة السر للاطلاع على التقرير</p>
+            </div>
+
+            <div id="parentLoginCard" class="max-w-md mx-auto glass-card p-6 sm:p-8 rounded-2xl border border-slate-800 space-y-4">
+                <form onsubmit="handleParentLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-2">كود / IP الطالب</label>
+                        <input type="text" id="parentLoginCode" placeholder="أدخل الكود" required class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-amber-500 font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-2">كلمة السر الخاصة بالطالب</label>
+                        <input type="password" id="parentLoginPass" placeholder="••••••" required class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-amber-500 font-mono">
+                    </div>
+                    <button type="submit" class="w-full py-3.5 rounded-xl gold-gradient text-slate-900 font-bold text-sm shadow-lg shadow-amber-500/20 hover:opacity-95 transition-all">
+                        عرض تقرير ولي الأمر
+                    </button>
+                </form>
+            </div>
+
+            <div id="parentReportContainer" class="hidden space-y-6 sm:space-y-8">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div class="glass-card p-4 rounded-2xl border border-slate-800">
+                        <span class="text-[11px] text-slate-400">اسم الطالب</span>
+                        <p id="parentReportName" class="text-base sm:text-lg font-extrabold text-white mt-1 truncate">-</p>
+                        <span id="parentReportGrade" class="text-[10px] text-slate-400">-</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl border border-slate-800">
+                        <span class="text-[11px] text-slate-400">متوسط الدرجات</span>
+                        <p id="parentReportAvg" class="text-xl sm:text-2xl font-black text-emerald-400 mt-1">0%</p>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl border border-slate-800">
+                        <span class="text-[11px] text-slate-400">الالتزام بالحضور</span>
+                        <p id="parentReportAttendance" class="text-xl sm:text-2xl font-black text-sky-400 mt-1">100%</p>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl border border-slate-800">
+                        <span class="text-[11px] text-slate-400">امتحانات مؤداة</span>
+                        <p id="parentReportExamCount" class="text-xl sm:text-2xl font-black text-amber-400 mt-1">0</p>
+                    </div>
+                </div>
+
+                <div class="glass-card p-5 sm:p-6 rounded-2xl border border-amber-500/30 bg-amber-500/5">
+                    <h4 class="text-xs sm:text-sm font-bold text-amber-400 mb-1"><i class="fa-solid fa-comment-dots"></i> ملاحظات Mr. Nasser المباشرة</h4>
+                    <p id="parentTeacherNote" class="text-xs sm:text-sm text-slate-200 leading-relaxed">-</p>
+                </div>
+
+                <div class="grid lg:grid-cols-3 gap-6">
+                    <div class="glass-card p-5 rounded-2xl border border-slate-800 lg:col-span-1">
+                        <h4 class="text-sm font-bold text-white mb-3">مؤشر أداء الدرجات</h4>
+                        <div class="relative h-56">
+                            <canvas id="parentChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="glass-card p-5 rounded-2xl border border-slate-800 lg:col-span-2">
+                        <h4 class="text-sm font-bold text-white mb-3">سجل جميع اختبارات الحصص</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right text-xs sm:text-sm min-w-[450px]">
+                                <thead class="text-[11px] text-slate-400 bg-slate-800/80 border-b border-slate-700">
+                                    <tr>
+                                        <th class="p-2.5">الامتحان</th>
+                                        <th class="p-2.5">التاريخ</th>
+                                        <th class="p-2.5">الدرجة</th>
+                                        <th class="p-2.5">النسبة</th>
+                                        <th class="p-2.5">وقت الحل</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="parentExamHistoryTable" class="divide-y divide-slate-800"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= EXAM TAB ================= -->
+        <section id="examTab" class="tab-content hidden space-y-6 sm:space-y-8">
+            <div id="examSelectContainer">
+                <div class="border-b border-slate-800 pb-4 sm:pb-6 mb-6">
+                    <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-file-signature text-sky-400"></i> قائمة الامتحانات المتاحة لصفك
+                    </h2>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-1">اختر الامتحان الذي تريد أداءه (ممنوع الخروج أو محاولة التصوير)</p>
+                </div>
+                <div id="examSelectionGrid" class="grid sm:grid-cols-2 gap-4 sm:gap-6"></div>
+            </div>
+
+            <!-- ACTIVE EXAM INTERFACE -->
+            <div id="activeExamContainer" class="hidden max-w-3xl mx-auto glass-card p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-slate-700 shadow-2xl relative">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+                    <div class="text-right">
+                        <h3 id="activeExamTitle" class="text-base sm:text-lg font-bold text-white">-</h3>
+                        <p id="activeExamSubtitle" class="text-xs text-sky-400 mt-0.5">-</p>
+                    </div>
+                    <div class="flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 px-3 py-1.5 rounded-xl">
+                        <i class="fa-regular fa-clock text-sm"></i>
+                        <span id="examTimer" class="font-mono text-sm sm:text-base font-bold">20:00</span>
+                    </div>
+                </div>
+
+                <form id="examForm" onsubmit="submitActiveExam(event)" class="space-y-6">
+                    <div id="examQuestionsBody" class="space-y-6"></div>
+                    <div class="border-t border-slate-800 pt-6 flex justify-between items-center">
+                        <button type="button" onclick="cancelExam()" class="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs hover:bg-slate-700 transition-all">
+                            إلغاء وتراجع
+                        </button>
+                        <button type="submit" class="px-8 py-3 rounded-xl blue-gradient text-white font-bold text-sm shadow-lg shadow-sky-500/20 hover:opacity-95 transition-all">
+                            تسليم الإجابات وإنهاء الامتحان
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- EXAM RESULT SUMMARY CARD -->
+            <div id="examResultCard" class="hidden max-w-lg mx-auto glass-card p-6 sm:p-8 rounded-3xl border border-slate-700 text-center space-y-5">
+                <div class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-3xl mx-auto border border-emerald-500/40">
+                    <i class="fa-solid fa-award"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-extrabold text-white">تم تسليم الامتحان وحفظ النتيجة!</h3>
+                    <p class="text-xs text-slate-400 mt-1">تم تسجيل درجتك ووقت الحل في سجلك</p>
+                </div>
+                <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-800 grid grid-cols-2 gap-4 text-center">
+                    <div>
+                        <p class="text-[11px] text-slate-400">الدرجة المحصلة</p>
+                        <p id="resScoreText" class="text-xl font-bold text-white mt-0.5">0 / 5</p>
+                    </div>
+                    <div>
+                        <p class="text-[11px] text-slate-400">النسبة المئوية</p>
+                        <p id="resPercentText" class="text-xl font-black text-amber-400 mt-0.5">0%</p>
+                    </div>
+                </div>
+                <button onclick="switchTab('studentTab')" class="w-full py-3 rounded-xl blue-gradient text-white font-bold text-xs shadow-lg">
+                    العودة لبوابة الطالب
+                </button>
+            </div>
+        </section>
+
+        <!-- ================= TEACHER DASHBOARD TAB ================= -->
+        <section id="teacherTab" class="tab-content hidden space-y-6 sm:space-y-8">
+            <div id="teacherAuthLock" class="max-w-md mx-auto glass-card p-6 sm:p-8 rounded-2xl border border-slate-800 space-y-4 text-center">
+                <div class="w-14 h-14 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center mx-auto text-2xl border border-amber-500/30">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white">لوحة تحكم المعلم (Mr. Nasser)</h3>
+                <p class="text-xs text-slate-400">أدخل رمز PIN السري للدخول إلى الإعدادات</p>
+                <form onsubmit="handleTeacherAuth(event)" class="space-y-4 pt-2">
+                    <input type="password" id="teacherPinInput" placeholder="رمز PIN الخاص بالمعلم" required class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-center font-mono text-base tracking-widest focus:outline-none focus:border-amber-500">
+                    <button type="submit" class="w-full py-3 rounded-xl gold-gradient text-slate-900 font-bold text-sm shadow-md">
+                        فتح لوحة التحكم
+                    </button>
+                </form>
+            </div>
+
+            <div id="teacherDashboardContent" class="hidden space-y-8">
+                <div class="border-b border-slate-800 pb-4 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">لوحة إحصائيات المعلم والطلاب</h2>
+                        <p class="text-xs text-slate-400">إدارة الأجهزة المعتمدة، إعادة الاختبارات المحددة، ومراجعة أوراق الطلاب</p>
+                    </div>
+                    <button onclick="lockTeacherDashboard()" class="px-4 py-2 rounded-xl bg-slate-800 text-xs font-bold text-red-400 hover:bg-slate-700">قفل اللوحة</button>
+                </div>
+
+                <div class="glass-card p-5 sm:p-6 rounded-2xl border border-slate-800 space-y-4">
+                    <h3 class="text-base font-bold text-white"><i class="fa-solid fa-users text-sky-400 ml-1"></i> قائمة الطلاب وإدارة الامتحانات</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right text-xs sm:text-sm min-w-[700px]">
+                            <thead class="text-[11px] text-slate-400 bg-slate-800/80 border-b border-slate-700">
+                                <tr>
+                                    <th class="p-3">الطالب</th>
+                                    <th class="p-3">الصف</th>
+                                    <th class="p-3">كود/IP</th>
+                                    <th class="p-3">محاولات الإعادة</th>
+                                    <th class="p-3">مراجعة الامتحانات</th>
+                                    <th class="p-3">إجراءات وإعادة الامتحان</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teacherStudentsTable" class="divide-y divide-slate-800"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="border-t border-slate-800/80 bg-slate-900/90 py-6 mt-10">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-2">
+            <p class="text-xs text-slate-400">جميع الحقوق محفوظة © 2026 - منصة <span class="text-sky-400 font-bold">Mr. Nasser</span> لتعليم اللغة الإنجليزية</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- HARDENED SECURITY & ANTI-CAPTURE GUARD ---
+        (function() {
+            window.addEventListener('keydown', function(e) {
+                if (
+                    e.keyCode === 123 || 
+                    (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || 
+                    (e.ctrlKey && (e.keyCode === 85 || e.keyCode === 83 || e.keyCode === 80)) ||
+                    e.keyCode === 44
+                ) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    triggerSecurityAlert("تم رصد محاولة استخدام اختصار محظور (طباعة/تصوير شاشة)!");
+                    return false;
+                }
+            }, true);
+
+            setInterval(function() {
+                const startTime = performance.now();
+                (function() { debugger; })();
+                const endTime = performance.now();
+                if (endTime - startTime > 100) {
+                    document.body.innerHTML = '<div style="background:#0f172a;color:#ef4444;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:bold;font-size:20px;text-align:center;padding:20px;">تم إنهاء الجلسة وحظر الجهاز لأسباب أمنية.</div>';
+                }
+            }, 1000);
+        })();
+
+        async function sha256(str) {
+            const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+            return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        const INITIAL_STUDENTS = [
+            {
+                code: "12345",
+                passHash: "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4", // 1234
+                name: "محمد ناصر عطاالله",
+                grade: "الثالث الإعدادي",
+                boundDevice: null,
+                attendance: "100%",
+                teacherNote: "طالب ممتاز جداً في القواعد والحل.",
+                retakesCount: 0
+            },
+            {
+                code: "123456",
+                passHash: "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", // 12345
+                name: "مالك ناصر عطاالله",
+                grade: "الثاني الإعدادي",
+                boundDevice: null,
+                attendance: "100%",
+                teacherNote: "طالب مجتهد ومستواه متقدم.",
+                retakesCount: 0
+            }
+        ];
+
+        const INITIAL_EXAMS = [
+            {
+                id: "ex_2prep_1",
+                grade: "الثاني الإعدادي",
+                title: "English Exam 1 – Second Prep",
+                subtitle: "Mr Nasser English Academy | Time: 20 Mins",
+                durationMin: 20,
+                questions: [
+                    { q: "My father usually _____ to work by car.", opts: ["a) go", "b) goes", "c) going", "d) gone"], ans: 1 },
+                    { q: "Look! The children _____ football in the garden.", opts: ["a) play", "b) plays", "c) are playing", "d) played"], ans: 2 },
+                    { q: "I have lived in Cairo _____ 2015.", opts: ["a) for", "b) since", "c) ago", "d) yet"], ans: 1 },
+                    { q: "You _____ eat too much fast food. It's unhealthy.", opts: ["a) should", "b) shouldn't", "c) must", "d) can"], ans: 1 },
+                    { q: "Ahmed is _____ than his brother.", opts: ["a) tall", "b) tallest", "c) taller", "d) the taller"], ans: 2 }
+                ]
+            },
+            {
+                id: "ex_2prep_2",
+                grade: "الثاني الإعدادي",
+                title: "English Exam 2 – Second Prep",
+                subtitle: "Mr Nasser English Academy | Time: 20 Mins",
+                durationMin: 20,
+                questions: [
+                    { q: "If you study hard, you _____ good marks.", opts: ["a) get", "b) got", "c) will get", "d) getting"], ans: 2 },
+                    { q: "A person who designs buildings is an _____.", opts: ["a) engineer", "b) architect", "c) dentist", "d) farmer"], ans: 1 },
+                    { q: "We _____ visit our grandparents next Friday.", opts: ["a) are going to", "b) was", "c) did", "d) has"], ans: 0 },
+                    { q: "The opposite of 'dangerous' is _____.", opts: ["a) difficult", "b) safe", "c) expensive", "d) exciting"], ans: 1 },
+                    { q: "Mona is interested _____ learning English.", opts: ["a) on", "b) at", "c) in", "d) for"], ans: 2 }
+                ]
+            },
+            {
+                id: "ex_3prep_1",
+                grade: "الثالث الإعدادي",
+                title: "English Exam 1 – Third Prep",
+                subtitle: "Mr Nasser English Academy | Time: 20 Mins",
+                durationMin: 20,
+                questions: [
+                    { q: "If I _____ enough money, I would buy a new laptop.", opts: ["a) have", "b) had", "c) will have", "d) having"], ans: 1 },
+                    { q: "English _____ all over the world.", opts: ["a) speaks", "b) spoke", "c) is spoken", "d) speaking"], ans: 2 },
+                    { q: "She has already _____ her homework.", opts: ["a) do", "b) did", "c) done", "d) doing"], ans: 2 },
+                    { q: "You _____ wear a seat belt when driving.", opts: ["a) must", "b) might", "c) could", "d) would"], ans: 0 },
+                    { q: "The man _____ lives next door is a doctor.", opts: ["a) which", "b) where", "c) who", "d) when"], ans: 2 }
+                ]
+            },
+            {
+                id: "ex_3prep_2",
+                grade: "الثالث الإعدادي",
+                title: "English Exam 2 – Third Prep",
+                subtitle: "Mr Nasser English Academy | Time: 20 Mins",
+                durationMin: 20,
+                questions: [
+                    { q: "By the time we arrived, the film _____.", opts: ["a) starts", "b) had started", "c) has started", "d) starting"], ans: 1 },
+                    { q: "My brother is good _____ solving problems.", opts: ["a) in", "b) on", "c) at", "d) for"], ans: 2 },
+                    { q: "'Generous' means someone who _____.", opts: ["a) hates helping others", "b) likes giving and helping others", "c) never talks", "d) gets angry easily"], ans: 1 },
+                    { q: "Despite _____ tired, he finished his work.", opts: ["a) be", "b) being", "c) was", "d) been"], ans: 1 },
+                    { q: "The opposite of 'ancient' is _____.", opts: ["a) modern", "b) old", "c) historic", "d) traditional"], ans: 0 }
+                ]
+            }
+        ];
+
+        let db = { students: [], exams: [], results: [] };
+        let currentUser = null;
+        let currentActiveExam = null;
+        let examTimerInterval = null;
+        let examStartTimeMs = null;
+        let parentChartInstance = null;
+        let cheatWarningsCount = 0;
+
+        function getDeviceFingerprint() {
+            let id = localStorage.getItem('mn_dev_fp');
+            if(!id) {
+                id = 'DEV-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+                localStorage.setItem('mn_dev_fp', id);
+            }
+            return id;
+        }
+
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden && currentActiveExam) {
+                triggerSecurityAlert("تم رصد محاولة مغادرة نافذة الامتحان أو فتح أداة تصوير!");
+            }
+        });
+
+        window.addEventListener("blur", function() {
+            if (currentActiveExam) {
+                triggerSecurityAlert("تم فقدان التركيز على شاشة الامتحان!");
+            }
+        });
+
+        function triggerSecurityAlert(reason) {
+            cheatWarningsCount++;
+            if (cheatWarningsCount === 1) {
+                document.getElementById('warningAttemptsLeft').innerText = "1";
+                document.getElementById('cheatWarningOverlay').classList.remove('hidden');
+            } else if (cheatWarningsCount >= 2) {
+                document.getElementById('cheatWarningOverlay').classList.add('hidden');
+                showToast("تم إلغاء الامتحان وتسليمه بنتيجة (0) لمخالفة قواعد الأمان!", "error");
+                forceFailExamCheating();
+            }
+        }
+
+        function dismissCheatWarning() {
+            document.getElementById('cheatWarningOverlay').classList.add('hidden');
+        }
+
+        function forceFailExamCheating() {
+            clearInterval(examTimerInterval);
+            if(!currentActiveExam || !currentUser) return;
+
+            const timeSpentSec = Math.floor((Date.now() - examStartTimeMs) / 1000);
+            const timeFormatted = formatTimeSpent(timeSpentSec);
+
+            const resultEntry = {
+                studentCode: currentUser.studentObj.code,
+                studentName: currentUser.studentObj.name,
+                examId: currentActiveExam.id,
+                examTitle: currentActiveExam.title + " (ملغى - محاولة تصوير/غش)",
+                score: 0,
+                total: currentActiveExam.questions.length,
+                percentage: 0,
+                date: new Date().toLocaleDateString('ar-EG'),
+                timeSpent: timeFormatted,
+                answersDetail: []
+            };
+
+            db.results.push(resultEntry);
+            localStorage.setItem('mn_db_results', JSON.stringify(db.results));
+
+            document.getElementById('activeExamContainer').classList.add('hidden');
+            document.getElementById('examResultCard').classList.remove('hidden');
+            document.getElementById('watermarkLayer').classList.add('hidden');
+
+            document.getElementById('resScoreText').innerText = `0 / ${currentActiveExam.questions.length}`;
+            document.getElementById('resPercentText').innerText = `0%`;
+
+            currentActiveExam = null;
+            cheatWarningsCount = 0;
+            renderStudentDashboard();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadLocalDatabase();
+            renderExamsList();
+            renderTeacherStudentsTable();
+        });
+
+        function loadLocalDatabase() {
+            const st = localStorage.getItem('mn_db_students');
+            db.students = st ? JSON.parse(st) : INITIAL_STUDENTS;
+            if(!st) localStorage.setItem('mn_db_students', JSON.stringify(INITIAL_STUDENTS));
+
+            db.exams = INITIAL_EXAMS;
+
+            const res = localStorage.getItem('mn_db_results');
+            db.results = res ? JSON.parse(res) : [];
+        }
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const bgClass = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-red-600' : 'bg-sky-600';
+            toast.className = `${bgClass} text-white px-4 py-3 rounded-xl shadow-2xl flex items-center justify-between text-xs sm:text-sm font-bold pointer-events-auto`;
+            toast.innerHTML = `<span>${msg}</span><button onclick="this.parentElement.remove()" class="mr-3">&times;</button>`;
+            container.appendChild(toast);
+            setTimeout(() => { if(toast.parentElement) toast.remove(); }, 4000);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-sky-400', 'bg-slate-700/70', 'active');
+                btn.classList.add('text-slate-300');
+            });
+
+            document.getElementById(tabId).classList.remove('hidden');
+            const activeNavBtn = document.getElementById(`nav-${tabId}`);
+            if(activeNavBtn) {
+                activeNavBtn.classList.add('text-sky-400', 'bg-slate-700/70', 'active');
+                activeNavBtn.classList.remove('text-slate-300');
+            }
+
+            if(tabId === 'examTab') renderExamsList();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleMobileMenu() {
+            document.getElementById('mobileMenu').classList.toggle('hidden');
+        }
+
+        async function handleStudentLogin(e) {
+            e.preventDefault();
+            const code = document.getElementById('studentLoginCode').value.trim();
+            const pass = document.getElementById('studentLoginPass').value.trim();
+
+            const student = db.students.find(s => s.code === code);
+            if(!student) return showToast("كود الطالب غير صحيح!", "error");
+
+            const inputHash = await sha256(pass);
+            if(inputHash !== student.passHash) return showToast("كلمة السر غير صحيحة!", "error");
+
+            const devFp = getDeviceFingerprint();
+            if(!student.boundDevice) {
+                student.boundDevice = devFp;
+                localStorage.setItem('mn_db_students', JSON.stringify(db.students));
+                showToast("تم ربط الحساب برقم جهازك الحالي بنجاح!", "success");
+            } else if(student.boundDevice !== devFp) {
+                return showToast("مرفوض! هذا الحساب مقترن بجهاز طالب آخر.", "error");
+            }
+
+            currentUser = { type: 'student', studentObj: student };
+            updateLoggedUserBadge(student.name, student.grade);
+
+            document.getElementById('studentLoginContainer').classList.add('hidden');
+            document.getElementById('studentDashboard').classList.remove('hidden');
+
+            renderStudentDashboard();
+            showToast(`أهلاً بك يا ${student.name}`, "success");
+        }
+
+        async function handleParentLogin(e) {
+            e.preventDefault();
+            const code = document.getElementById('parentLoginCode').value.trim();
+            const pass = document.getElementById('parentLoginPass').value.trim();
+
+            const student = db.students.find(s => s.code === code);
+            if(!student) return showToast("الكود غير صحيح!", "error");
+
+            const inputHash = await sha256(pass);
+            if(inputHash !== student.passHash) return showToast("كلمة السر غير صحيحة!", "error");
+
+            currentUser = { type: 'parent', studentObj: student };
+            updateLoggedUserBadge(`ولي أمر: ${student.name}`, student.grade);
+
+            document.getElementById('parentLoginCard').classList.add('hidden');
+            document.getElementById('parentReportContainer').classList.remove('hidden');
+
+            renderParentReport(student);
+        }
+
+        function updateLoggedUserBadge(name, role) {
+            const badge = document.getElementById('loggedUserBadge');
+            document.getElementById('loggedUserName').innerText = name;
+            document.getElementById('loggedUserRole').innerText = role;
+            badge.classList.remove('hidden');
+            badge.classList.add('flex');
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('loggedUserBadge').classList.add('hidden');
+            document.getElementById('studentLoginContainer').classList.remove('hidden');
+            document.getElementById('studentDashboard').classList.add('hidden');
+            document.getElementById('parentLoginCard').classList.remove('hidden');
+            document.getElementById('parentReportContainer').classList.add('hidden');
+            showToast("تم تسجيل الخروج", "info");
+            switchTab('homeTab');
+        }
+
+        function renderStudentDashboard() {
+            if(!currentUser || currentUser.type !== 'student') return;
+            const st = currentUser.studentObj;
+
+            document.getElementById('dashStudentName').innerText = st.name;
+            document.getElementById('dashStudentGrade').innerText = st.grade;
+
+            const stResults = db.results.filter(r => r.studentCode === st.code);
+            const avg = stResults.length > 0 
+                ? Math.round(stResults.reduce((acc, curr) => acc + curr.percentage, 0) / stResults.length) 
+                : 0;
+            document.getElementById('dashStudentAvg').innerText = `${avg}%`;
+
+            const tbody = document.getElementById('studentHistoryTableBody');
+            tbody.innerHTML = '';
+            if(stResults.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">لا توجد اختبارات مسجلة بعد</td></tr>`;
+            } else {
+                stResults.forEach(res => {
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-800/40">
+                            <td class="p-3 font-bold text-white">${res.examTitle}</td>
+                            <td class="p-3 text-slate-400">${res.date}</td>
+                            <td class="p-3 font-mono text-sky-400">${res.score} / ${res.total}</td>
+                            <td class="p-3 font-bold text-amber-400">${res.percentage}%</td>
+                            <td class="p-3 font-mono text-emerald-400">${res.timeSpent || 'غير متوفر'}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            renderExamsList();
+        }
+
+        function renderParentReport(student) {
+            document.getElementById('parentReportName').innerText = student.name;
+            document.getElementById('parentReportGrade').innerText = student.grade;
+            document.getElementById('parentReportAttendance').innerText = student.attendance || "100%";
+            document.getElementById('parentTeacherNote').innerText = student.teacherNote || "لا توجد ملاحظات.";
+
+            const stResults = db.results.filter(r => r.studentCode === student.code);
+            document.getElementById('parentReportExamCount').innerText = stResults.length;
+
+            const avg = stResults.length > 0 
+                ? Math.round(stResults.reduce((acc, curr) => acc + curr.percentage, 0) / stResults.length) 
+                : 0;
+            document.getElementById('parentReportAvg').innerText = `${avg}%`;
+
+            const tbody = document.getElementById('parentExamHistoryTable');
+            tbody.innerHTML = '';
+            if(stResults.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-500">لم يتم أداء امتحانات بعد</td></tr>`;
+            } else {
+                stResults.forEach(res => {
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-800/40">
+                            <td class="p-2.5 font-bold text-white">${res.examTitle}</td>
+                            <td class="p-2.5 text-slate-400">${res.date}</td>
+                            <td class="p-2.5 font-mono text-sky-400">${res.score} / ${res.total}</td>
+                            <td class="p-2.5 font-bold text-emerald-400">${res.percentage}%</td>
+                            <td class="p-2.5 font-mono text-sky-300">${res.timeSpent || 'غير متوفر'}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            renderParentChart(stResults);
+        }
+
+        function renderParentChart(results) {
+            const ctx = document.getElementById('parentChart').getContext('2d');
+            if(parentChartInstance) parentChartInstance.destroy();
+
+            const labels = results.map((r, i) => `اختبار ${i+1}`);
+            const dataScores = results.map(r => r.percentage);
+
+            parentChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels.length > 0 ? labels : ['لم يتم الحل'],
+                    datasets: [{
+                        label: 'النسبة المئوية %',
+                        data: dataScores.length > 0 ? dataScores : [0],
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.15)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { color: '#94a3b8' } },
+                        x: { ticks: { color: '#94a3b8' } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function renderExamsList() {
+            const container = document.getElementById('examSelectionGrid');
+            const dashList = document.getElementById('availableExamsList');
+
+            if(container) container.innerHTML = '';
+            if(dashList) dashList.innerHTML = '';
+
+            db.exams.forEach(ex => {
+                let isAlreadyTaken = false;
+                let userScore = null;
+
+                if(currentUser && currentUser.type === 'student') {
+                    const foundRes = db.results.find(r => r.studentCode === currentUser.studentObj.code && r.examId === ex.id);
+                    if(foundRes) {
+                        isAlreadyTaken = true;
+                        userScore = foundRes;
+                    }
+                }
+
+                const isEligibleGrade = currentUser && currentUser.type === 'student' ? currentUser.studentObj.grade === ex.grade : true;
+
+                const cardHtml = `
+                    <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-4 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] bg-sky-500/20 text-sky-400 border border-sky-500/30 px-2.5 py-1 rounded-full font-bold">${ex.grade}</span>
+                            <h3 class="text-base font-bold text-white mt-2">${ex.title}</h3>
+                            <p class="text-xs text-slate-400 mt-1">${ex.subtitle}</p>
+                            <div class="flex items-center gap-4 text-xs text-slate-400 mt-3 font-mono">
+                                <span><i class="fa-regular fa-clock text-amber-400 ml-1"></i>${ex.durationMin} دقيقة</span>
+                                <span><i class="fa-solid fa-list text-sky-400 ml-1"></i>${ex.questions.length} أسئلة</span>
+                            </div>
+                        </div>
+
+                        ${isAlreadyTaken ? `
+                            <div class="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-center">
+                                <p class="text-xs font-bold text-emerald-400"><i class="fa-solid fa-check-circle ml-1"></i> تم أداء هذا الامتحان بنجاح</p>
+                                <p class="text-xs text-slate-300 font-mono mt-0.5">الدرجة المسجلة: ${userScore.score} / ${userScore.total} (${userScore.percentage}%)</p>
+                            </div>
+                        ` : `
+                            <button onclick="startExam('${ex.id}')" class="w-full py-2.5 rounded-xl blue-gradient text-white font-bold text-xs shadow-md hover:opacity-95 transition-all">
+                                بدء حل هذا الامتحان
+                            </button>
+                        `}
+                    </div>
+                `;
+
+                if(container && (isEligibleGrade || !currentUser)) container.innerHTML += cardHtml;
+                if(dashList && isEligibleGrade) dashList.innerHTML += cardHtml;
+            });
+        }
+
+        function startExam(examId) {
+            if(!currentUser || currentUser.type !== 'student') {
+                showToast("يجب تسجيل دخول الطالب أولاً من بوابة الطالب لبدء الامتحان!", "error");
+                switchTab('studentTab');
+                return;
+            }
+
+            const devFp = getDeviceFingerprint();
+            if(currentUser.studentObj.boundDevice && currentUser.studentObj.boundDevice !== devFp) {
+                return showToast("مرفوض! لا يمكنك دخول الامتحان إلا من جهازك المعتمد المسجل أول مرة.", "error");
+            }
+
+            const alreadyTaken = db.results.some(r => r.studentCode === currentUser.studentObj.code && r.examId === examId);
+            if(alreadyTaken) {
+                return showToast("عذراً، يُسمح بدخول الامتحان مرة واحدة فقط وقد قمت بأدائه سابقاً!", "error");
+            }
+
+            const exam = db.exams.find(e => e.id === examId);
+            if(!exam) return;
+
+            currentActiveExam = exam;
+            cheatWarningsCount = 0;
+            examStartTimeMs = Date.now();
+
+            const wmLayer = document.getElementById('watermarkLayer');
+            wmLayer.innerHTML = '';
+            wmLayer.classList.remove('hidden');
+            for(let i=0; i<15; i++) {
+                wmLayer.innerHTML += `<div class="text-slate-500 font-mono text-sm font-bold rotate-[-30deg] p-6">${currentUser.studentObj.name} - ${currentUser.studentObj.code}</div>`;
+            }
+
+            document.getElementById('examSelectContainer').classList.add('hidden');
+            document.getElementById('activeExamContainer').classList.remove('hidden');
+            document.getElementById('examResultCard').classList.add('hidden');
+
+            document.getElementById('activeExamTitle').innerText = exam.title;
+            document.getElementById('activeExamSubtitle').innerText = exam.subtitle;
+
+            const qBody = document.getElementById('examQuestionsBody');
+            qBody.innerHTML = '';
+            exam.questions.forEach((q, idx) => {
+                let optsHtml = '';
+                q.opts.forEach((opt, optIdx) => {
+                    optsHtml += `
+                        <label class="flex items-center gap-3 p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-sky-500/50 cursor-pointer transition-all">
+                            <input type="radio" name="q_${idx}" value="${optIdx}" required class="accent-sky-500">
+                            <span class="text-xs sm:text-sm text-slate-200 font-mono">${opt}</span>
+                        </label>
+                    `;
+                });
+
+                qBody.innerHTML += `
+                    <div class="glass-card p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-3 text-right">
+                        <p class="text-xs sm:text-sm font-bold text-white font-mono">${idx + 1}. ${q.q}</p>
+                        <div class="grid sm:grid-cols-2 gap-2.5 pt-1">
+                            ${optsHtml}
+                        </div>
+                    </div>
+                `;
+            });
+
+            startTimer(exam.durationMin * 60);
+            switchTab('examTab');
+        }
+
+        function startTimer(seconds) {
+            clearInterval(examTimerInterval);
+            let timeRemaining = seconds;
+
+            const timerEl = document.getElementById('examTimer');
+            examTimerInterval = setInterval(() => {
+                const mins = Math.floor(timeRemaining / 60);
+                const secs = timeRemaining % 60;
+                timerEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+                if(timeRemaining <= 0) {
+                    clearInterval(examTimerInterval);
+                    showToast("انتهى الوقت المحدد للامتحان وتم تسليم إجاباتك تلقائياً!", "error");
+                    submitActiveExam();
+                }
+                timeRemaining--;
+            }, 1000);
+        }
+
+        function cancelExam() {
+            clearInterval(examTimerInterval);
+            currentActiveExam = null;
+            cheatWarningsCount = 0;
+            document.getElementById('watermarkLayer').classList.add('hidden');
+            document.getElementById('activeExamContainer').classList.add('hidden');
+            document.getElementById('examSelectContainer').classList.remove('hidden');
+        }
+
+        function formatTimeSpent(totalSeconds) {
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            if(mins === 0) return `${secs} ثانية`;
+            return `${mins} دقيقة و ${secs} ثانية`;
+        }
+
+        function submitActiveExam(e) {
+            if(e) e.preventDefault();
+            clearInterval(examTimerInterval);
+
+            if(!currentActiveExam || !currentUser) return;
+
+            const timeSpentSec = Math.floor((Date.now() - examStartTimeMs) / 1000);
+            const timeFormatted = formatTimeSpent(timeSpentSec);
+
+            let score = 0;
+            let answersDetail = [];
+
+            currentActiveExam.questions.forEach((q, idx) => {
+                const selected = document.querySelector(`input[name="q_${idx}"]:checked`);
+                const selectedOptIdx = selected ? parseInt(selected.value) : -1;
+                const isCorrect = selectedOptIdx === q.ans;
+                if(isCorrect) score++;
+
+                answersDetail.push({
+                    question: q.q,
+                    options: q.opts,
+                    selectedIndex: selectedOptIdx,
+                    selectedOption: selectedOptIdx !== -1 ? q.opts[selectedOptIdx] : "لم يتم الإجابة",
+                    correctIndex: q.ans,
+                    correctOption: q.opts[q.ans],
+                    isCorrect: isCorrect
+                });
+            });
+
+            const total = currentActiveExam.questions.length;
+            const percentage = Math.round((score / total) * 100);
+
+            const resultEntry = {
+                studentCode: currentUser.studentObj.code,
+                studentName: currentUser.studentObj.name,
+                examId: currentActiveExam.id,
+                examTitle: currentActiveExam.title,
+                score: score,
+                total: total,
+                percentage: percentage,
+                date: new Date().toLocaleDateString('ar-EG'),
+                timeSpent: timeFormatted,
+                answersDetail: answersDetail
+            };
+
+            db.results.push(resultEntry);
+            localStorage.setItem('mn_db_results', JSON.stringify(db.results));
+
+            document.getElementById('activeExamContainer').classList.add('hidden');
+            document.getElementById('watermarkLayer').classList.add('hidden');
+            document.getElementById('examResultCard').classList.remove('hidden');
+
+            document.getElementById('resScoreText').innerText = `${score} / ${total}`;
+            document.getElementById('resPercentText').innerText = `${percentage}%`;
+
+            currentActiveExam = null;
+            cheatWarningsCount = 0;
+            renderStudentDashboard();
+            showToast("تم تسليم وحفظ النتيجة في الحساب بنجاح!", "success");
+        }
+
+        function handleTeacherAuth(e) {
+            e.preventDefault();
+            const pin = document.getElementById('teacherPinInput').value.trim();
+
+            if(pin === "Na1973#") {
+                document.getElementById('teacherAuthLock').classList.add('hidden');
+                document.getElementById('teacherDashboardContent').classList.remove('hidden');
+                showToast("مرحباً مستر ناصر، تم فتح لوحة التحكم", "success");
+            } else {
+                showToast("رمز PIN غير صحيح!", "error");
+            }
+        }
+
+        function lockTeacherDashboard() {
+            document.getElementById('teacherDashboardContent').classList.add('hidden');
+            document.getElementById('teacherAuthLock').classList.remove('hidden');
+        }
+
+        function renderTeacherStudentsTable() {
+            const tbody = document.getElementById('teacherStudentsTable');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            db.students.forEach((st, idx) => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-800/40">
+                        <td class="p-3 font-bold text-white">${st.name}</td>
+                        <td class="p-3 text-sky-400">${st.grade}</td>
+                        <td class="p-3 font-mono text-amber-400">${st.code}</td>
+                        <td class="p-3 text-center font-bold text-emerald-400 font-mono">${st.retakesCount || 0} مرات</td>
+                        <td class="p-3">
+                            <button onclick="openStudentExamReviews('${st.code}')" class="px-3 py-1.5 bg-sky-600/20 text-sky-400 border border-sky-500/30 text-xs font-bold rounded-xl hover:bg-sky-600/30 transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-clipboard-question"></i> مراجعة الامتحانات
+                            </button>
+                        </td>
+                        <td class="p-3 space-x-1 space-x-reverse">
+                            <button onclick="openRetakeModal('${st.code}')" class="px-3 py-1.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold rounded-xl hover:bg-amber-500/30 transition-all">
+                                <i class="fa-solid fa-rotate-right ml-1"></i> السماح بإعادة الامتحان
+                            </button>
+                            <button onclick="resetDevice(${idx})" class="px-2.5 py-1 bg-slate-800 text-xs text-slate-400 rounded-lg hover:bg-slate-700 mt-1">فك الجهاز</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function openRetakeModal(studentCode) {
+            const student = db.students.find(s => s.code === studentCode);
+            if(!student) return;
+
+            document.getElementById('retakeModalTitle').innerText = `إعادة امتحان لـ: ${student.name}`;
+            const container = document.getElementById('teacherRetakeModalBody');
+            container.innerHTML = '';
+
+            const stResults = db.results.filter(r => r.studentCode === studentCode);
+            if(stResults.length === 0) {
+                container.innerHTML = `<div class="p-4 text-center text-slate-400">هذا الطالب لم يؤدِ أي امتحانات ليتم إعادتها.</div>`;
+            } else {
+                stResults.forEach(res => {
+                    container.innerHTML += `
+                        <div class="glass-card p-4 rounded-xl border border-slate-800 flex items-center justify-between">
+                            <div>
+                                <h4 class="font-bold text-white text-xs">${res.examTitle}</h4>
+                                <span class="text-[11px] text-amber-400 font-mono">النتيجة الحالية: ${res.score} / ${res.total} (${res.percentage}%)</span>
+                            </div>
+                            <button onclick="confirmSpecificRetake('${studentCode}', '${res.examId}')" class="px-3 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow transition-all">
+                                فتح هذا الامتحان فقط
+                            </button>
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('teacherRetakeModal').classList.remove('hidden');
+        }
+
+        function closeRetakeModal() {
+            document.getElementById('teacherRetakeModal').classList.add('hidden');
+        }
+
+        function confirmSpecificRetake(studentCode, examId) {
+            const student = db.students.find(s => s.code === studentCode);
+            if(!student) return;
+
+            db.results = db.results.filter(r => !(r.studentCode === studentCode && r.examId === examId));
+            localStorage.setItem('mn_db_results', JSON.stringify(db.results));
+
+            student.retakesCount = (student.retakesCount || 0) + 1;
+            localStorage.setItem('mn_db_students', JSON.stringify(db.students));
+
+            closeRetakeModal();
+            renderTeacherStudentsTable();
+            showToast(`تم فتح الامتحان المختار لإعادة الإمتحان بنجاح للطالب ${student.name}!`, "success");
+        }
+
+        let currentReviewResultsStore = [];
+
+        function openStudentExamReviews(studentCode) {
+            const student = db.students.find(s => s.code === studentCode);
+            if(!student) return;
+
+            document.getElementById('reviewModalTitle').innerText = `امتحانات الطالب: ${student.name}`;
+            document.getElementById('reviewModalSubtitle').innerText = `الصف: ${student.grade} (كود: ${student.code}) | مرات الإعادة: ${student.retakesCount || 0}`;
+
+            const container = document.getElementById('teacherReviewModalBody');
+            container.innerHTML = '';
+
+            currentReviewResultsStore = db.results.filter(r => r.studentCode === studentCode);
+            if(currentReviewResultsStore.length === 0) {
+                container.innerHTML = `<div class="p-6 text-center text-slate-400 bg-slate-900/60 rounded-2xl border border-slate-800">لم يؤدِ هذا الطالب أي امتحانات حتى الآن.</div>`;
+            } else {
+                currentReviewResultsStore.forEach((res, index) => {
+                    container.innerHTML += `
+                        <div class="glass-card p-4 sm:p-5 rounded-2xl border border-slate-800 flex items-center justify-between">
+                            <div>
+                                <h4 class="font-bold text-white text-sm sm:text-base">${res.examTitle}</h4>
+                                <p class="text-xs text-slate-400 mt-1">تاريخ الحل: ${res.date} | النتيجة: <span class="text-amber-400 font-black">${res.score} / ${res.total}</span> (${res.percentage}%)</p>
+                                <p class="text-[11px] text-emerald-400 mt-0.5 font-mono">⏱️ وقت الحل المستغرق: ${res.timeSpent || 'غير متوفر'}</p>
+                            </div>
+                            <button onclick="openFullExamPaperByIndex(${index})" class="px-4 py-2.5 blue-gradient text-white text-xs font-bold rounded-xl shadow-lg hover:opacity-90 transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-eye"></i> عرض ورقة الامتحان
+                            </button>
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('teacherExamReviewModal').classList.remove('hidden');
+        }
+
+        function closeTeacherReviewModal() {
+            document.getElementById('teacherExamReviewModal').classList.add('hidden');
+        }
+
+        function openFullExamPaperByIndex(index) {
+            const resultObj = currentReviewResultsStore[index];
+            if(resultObj) {
+                openFullExamPaper(resultObj);
+            } else {
+                showToast("تعذر العثور على بيانات ورقة الامتحان", "error");
+            }
+        }
+
+        function openFullExamPaper(resultObj) {
+            document.getElementById('paperModalTitle').innerText = resultObj.examTitle;
+            document.getElementById('paperModalSub').innerText = `الطالب: ${resultObj.studentName} | النتيجة: ${resultObj.score} / ${resultObj.total} (${resultObj.percentage}%) | وقت الحل: ${resultObj.timeSpent || 'غير متوفر'}`;
+
+            const container = document.getElementById('examFullPaperBody');
+            container.innerHTML = '';
+
+            if(!resultObj.answersDetail || resultObj.answersDetail.length === 0) {
+                container.innerHTML = `<div class="p-6 text-center text-slate-400">لا توجد تفاصيل مفصلة مسجلة لهذا الاختبار.</div>`;
+            } else {
+                resultObj.answersDetail.forEach((ans, idx) => {
+                    let optionsHtml = '';
+                    ans.options.forEach((opt, optIdx) => {
+                        let optStyle = "bg-slate-900 border-slate-800 text-slate-300";
+                        let badgeHtml = "";
+
+                        if (optIdx === ans.correctIndex) {
+                            optStyle = "bg-emerald-500/20 border-emerald-500/60 text-emerald-300 font-bold";
+                            badgeHtml = '<span class="text-[10px] bg-emerald-500 text-slate-950 px-2 py-0.5 rounded-full font-black float-left">الإجابة الصحيحة</span>';
+                        }
+                        if (optIdx === ans.selectedIndex && !ans.isCorrect) {
+                            optStyle = "bg-red-500/20 border-red-500/60 text-red-300 font-bold";
+                            badgeHtml = '<span class="text-[10px] bg-red-500 text-white px-2 py-0.5 rounded-full font-black float-left">إجابة الطالب الخاطئة</span>';
+                        }
+                        if (optIdx === ans.selectedIndex && ans.isCorrect) {
+                            badgeHtml = '<span class="text-[10px] bg-emerald-500 text-slate-950 px-2 py-0.5 rounded-full font-black float-left">إجابة الطالب (صح)</span>';
+                        }
+
+                        optionsHtml += `
+                            <div class="p-3 rounded-xl border ${optStyle} text-xs font-mono flex items-center justify-between">
+                                <span>${opt}</span>
+                                ${badgeHtml}
+                            </div>
+                        `;
+                    });
+
+                    const statusHeader = ans.isCorrect 
+                        ? '<span class="text-emerald-400 font-bold text-xs"><i class="fa-solid fa-circle-check"></i> إجابة صحيحة</span>' 
+                        : '<span class="text-red-400 font-bold text-xs"><i class="fa-solid fa-circle-xmark"></i> إجابة خاطئة</span>';
+
+                    container.innerHTML += `
+                        <div class="glass-card p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-3">
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                                <span class="text-xs font-black text-sky-400 font-mono">السؤال رقم (${idx + 1})</span>
+                                ${statusHeader}
+                            </div>
+                            <p class="text-sm font-bold text-white font-mono">${ans.question}</p>
+                            <div class="grid gap-2 pt-1">
+                                ${optionsHtml}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('examFullPaperModal').classList.remove('hidden');
+        }
+
+        function closeFullPaperModal() {
+            document.getElementById('examFullPaperModal').classList.add('hidden');
+        }
+
+        function resetDevice(idx) {
+            db.students[idx].boundDevice = null;
+            localStorage.setItem('mn_db_students', JSON.stringify(db.students));
+            renderTeacherStudentsTable();
+            showToast("تم فك إذن الجهاز السابق للطالب.", "info");
+        }
+    </script>
+</body>
+</html>
